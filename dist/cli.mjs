@@ -1,9 +1,7 @@
-#!/usr/bin/env node
-
 import { createHash } from "node:crypto";
 import { cp, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import process2 from "node:process";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 var runtimeDir = path.dirname(fileURLToPath(import.meta.url));
 var runtimeRoot = path.dirname(runtimeDir);
@@ -115,7 +113,7 @@ Boundary:
   Local filesystem only. No od command calls, no network, no daemon API, and no
   daemon data-root dependency.`;
 }
-async function runCli(args = process2.argv.slice(2)) {
+async function runCli(args = process.argv.slice(2)) {
   const { options, positionals } = parseOptions(args);
   if (options.help === true || positionals.length === 0) {
     writeLine(usage());
@@ -189,7 +187,7 @@ function getStringOption(options, key) {
   return typeof value === "string" ? value : void 0;
 }
 function resolveOutput(target) {
-  return path.resolve(process2.cwd(), target);
+  return path.resolve(process.cwd(), target);
 }
 async function copyDirectory(source, destination) {
   await mkdir(path.dirname(destination), { recursive: true });
@@ -278,9 +276,9 @@ async function initDesignSystem(options) {
   writeLine(`Initialized design system "${name}" at ${output}`);
 }
 async function validatePrototype(options) {
-  const entry = path.resolve(process2.cwd(), requireOption(options, "entry"));
+  const entry = path.resolve(process.cwd(), requireOption(options, "entry"));
   const dirOption = getStringOption(options, "dir");
-  const dir = dirOption ? path.resolve(process2.cwd(), dirOption) : path.dirname(entry);
+  const dir = dirOption ? path.resolve(process.cwd(), dirOption) : path.dirname(entry);
   const text = await readFile(entry, "utf8");
   const failures = [];
   const extension = path.extname(entry);
@@ -309,7 +307,7 @@ async function validatePrototype(options) {
   reportValidation("prototype", failures);
 }
 async function validateDesignSystem(options) {
-  const dir = path.resolve(process2.cwd(), requireOption(options, "dir"));
+  const dir = path.resolve(process.cwd(), requireOption(options, "dir"));
   const failures = [];
   for (const file of requiredDesignSystemFiles) {
     const fullPath = path.join(dir, file);
@@ -378,7 +376,7 @@ async function validateDesignSystem(options) {
   reportValidation("design-system", failures);
 }
 async function bundleHandoff(options) {
-  const dir = path.resolve(process2.cwd(), requireOption(options, "dir"));
+  const dir = path.resolve(process.cwd(), requireOption(options, "dir"));
   await mkdir(dir, { recursive: true });
   await writeHandoff(dir, {
     kind: "draft prototype or design-system handoff",
@@ -477,7 +475,7 @@ function findForbidden(text, file) {
   for (const item of forbiddenPatterns) {
     const offendingLine = text.split(/\r?\n/).find((line) => item.pattern.test(line) && !item.allowLine?.(line));
     if (offendingLine !== void 0) {
-      failures.push(`${path.relative(process2.cwd(), file)} contains forbidden dependency: ${item.label}`);
+      failures.push(`${path.relative(process.cwd(), file)} contains forbidden dependency: ${item.label}`);
     }
   }
   return failures;
@@ -507,7 +505,7 @@ async function listTextFiles(dir) {
   return files;
 }
 function validateHtmlA11y(text, entry, failures) {
-  const label = path.relative(process2.cwd(), entry);
+  const label = path.relative(process.cwd(), entry);
   if (!/<main\b/i.test(text)) failures.push(`${label} is missing a semantic <main> landmark.`);
   if (!/:focus-visible\b|focus-visible/i.test(text)) {
     failures.push(`${label} is missing visible focus-state CSS or equivalent focus-visible marker.`);
@@ -526,7 +524,7 @@ function validateHtmlA11y(text, entry, failures) {
   }
 }
 function validateReactPrototypeA11y(text, entry, failures) {
-  const label = path.relative(process2.cwd(), entry);
+  const label = path.relative(process.cwd(), entry);
   const requiredSignals = [
     { label: "a semantic main landmark", pattern: /<main\b|role=["']main["']/i },
     { label: "accessible region or control labels", pattern: /aria-label=|aria-labelledby=/i },
@@ -597,12 +595,12 @@ async function validateHandoff(file, failures, { required }) {
   try {
     text = await readFile(file, "utf8");
   } catch {
-    if (required) failures.push(`Missing required handoff file: ${path.relative(process2.cwd(), file)}`);
+    if (required) failures.push(`Missing required handoff file: ${path.relative(process.cwd(), file)}`);
     return;
   }
   for (const section of handoffSections) {
     if (!text.includes(section)) {
-      failures.push(`${path.relative(process2.cwd(), file)} is missing handoff section: ${section}`);
+      failures.push(`${path.relative(process.cwd(), file)} is missing handoff section: ${section}`);
     }
   }
   const placeholderPatterns = [
@@ -617,14 +615,14 @@ async function validateHandoff(file, failures, { required }) {
   ];
   for (const item of placeholderPatterns) {
     if (item.pattern.test(text)) {
-      failures.push(`${path.relative(process2.cwd(), file)} contains ${item.label}.`);
+      failures.push(`${path.relative(process.cwd(), file)} contains ${item.label}.`);
     }
   }
   if (!/- Uses Open Design daemon: no/i.test(text)) {
-    failures.push(`${path.relative(process2.cwd(), file)} must state that it does not use the Open Design daemon.`);
+    failures.push(`${path.relative(process.cwd(), file)} must state that it does not use the Open Design daemon.`);
   }
   if (!/- Calls \/api\/\*: no/i.test(text)) {
-    failures.push(`${path.relative(process2.cwd(), file)} must state that it does not call /api/*.`);
+    failures.push(`${path.relative(process.cwd(), file)} must state that it does not call /api/*.`);
   }
 }
 function reportValidation(label, failures) {
@@ -633,7 +631,7 @@ function reportValidation(label, failures) {
     for (const failure of failures) {
       console.error(`- ${failure}`);
     }
-    process2.exitCode = 1;
+    process.exitCode = 1;
     return;
   }
   writeLine(`${label} validation passed.`);
@@ -679,7 +677,7 @@ async function readPackageManifest() {
 async function readSourceManifest() {
   try {
     return {
-      label: path.relative(process2.cwd(), sourceManifestPath),
+      label: path.relative(process.cwd(), sourceManifestPath),
       manifest: parseSourceManifest(await readFile(sourceManifestPath, "utf8"))
     };
   } catch (error) {
@@ -789,11 +787,10 @@ function formatError(error) {
   return error instanceof Error ? error.message : String(error);
 }
 function writeLine(message) {
-  process2.stdout.write(`${message}
+  process.stdout.write(`${message}
 `);
 }
-
-runCli(process.argv.slice(2)).catch((error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});
+export {
+  hashText,
+  runCli
+};

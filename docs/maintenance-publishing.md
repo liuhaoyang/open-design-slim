@@ -8,7 +8,12 @@ Open Design runtime extension.
 
 - Keep the canonical slug `open-design-slim`.
 - Keep the skill entrypoint at `skills/open-design-slim/SKILL.md`.
-- Keep helper behavior local-filesystem-only.
+- Keep Open Design Slim CLI behavior local-filesystem-only.
+- Keep `open-design-slim` as the canonical binary and `od-slim` as the only
+  short alias. Do not register `od`.
+- Keep the CLI package and skill bundle decoupled: skill guidance can call its
+  own `scripts/od-slim.mjs`, but must not call executable paths outside the
+  skill directory.
 - Do not introduce dependencies on `od`, `/api/*`, daemon data roots, artifact
   databases, desktop IPC, plugin hosts, provider management, MCP proxying,
   media tools, or export pipelines.
@@ -18,25 +23,40 @@ Open Design runtime extension.
 
 ## Updating The Bundle
 
-When changing templates, contracts, quality files, or helper validation:
+When changing templates, contracts, quality files, or CLI validation:
 
-1. Update `SKILL.md` if generation modes, contracts, or helper commands changed.
+1. Update `SKILL.md` if generation modes, contracts, or CLI commands changed.
 2. Update this repository's docs under `docs/`.
 3. Run lightweight source checks:
 
    ```bash
+   pnpm run build
+   pnpm run check:generated
+   pnpm run check:assets
+   pnpm run test
+   pnpm run typecheck
+   node bin/open-design-slim.mjs --help
    node skills/open-design-slim/scripts/od-slim.mjs --help
+   node bin/open-design-slim.mjs manifest show
+   node bin/open-design-slim.mjs validate design-system --dir assets/design-systems/default
    node skills/open-design-slim/scripts/od-slim.mjs validate design-system --dir skills/open-design-slim/assets/design-systems/default
    git status --short --untracked-files=all
    git submodule status
    ```
 
-4. If helper validation changed, scaffold a small temporary artifact and verify
+4. If CLI validation changed, scaffold a small temporary artifact and verify
    the command still fails or passes for the intended reasons.
 5. If visual guidance changed, compare against the golden examples under
    `assets/examples/golden/`.
 
 ## Publishing Or Copying
+
+For the publishable CLI package, include:
+
+- `package.json`
+- `bin/`
+- `dist/`
+- `assets/`
 
 For a host-neutral skill distribution, include:
 
@@ -49,13 +69,30 @@ For a host-neutral skill distribution, include:
 
 The root `docs/` directory is useful for maintainers, but an agent runtime only
 needs the skill folder unless the host distribution expects repository-level
-documentation.
+documentation. If only the skill folder is copied, it remains usable through
+`node scripts/od-slim.mjs`, manual template copying, and the checklists. The
+helper must remain self-contained and must not import or read files outside the
+skill directory.
+
+## TypeScript Runtime
+
+The package TypeScript stack is aligned with upstream Open Design:
+
+- `packageManager: pnpm@10.33.2`
+- `typescript: 5.9.3`
+- `tsx: 4.22.3`
+- `@types/node: 20.19.39`
+- engines: Node `>=20`, pnpm `>=10.33.2 <11`
+
+The source package builds `src/cli.ts` into `dist/cli.mjs` for publishable CLI
+usage and into `skills/open-design-slim/scripts/od-slim.mjs` for skill-bundle
+usage. Maintainers should run `pnpm install` and `pnpm run check` after
+dependency, CLI, or asset changes.
 
 ## Versioning Guidance
 
-There is no runtime registry version in this repository yet. If a future
-distribution adds version metadata, update it in one place and keep generated
-design-system bundle metadata separate from the skill bundle version.
+The package version lives in root `package.json`. Keep generated design-system
+bundle metadata separate from the package version.
 
 Use provenance notes for generated design systems to record whether values came
 from `bundle_default`, `host_repo`, `user_provided`, or `inferred` sources.

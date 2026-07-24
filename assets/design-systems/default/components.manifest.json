@@ -1,0 +1,36 @@
+{
+  "name": "Open Design Slim Default",
+  "version": "1.0.0",
+  "components": [
+    {
+      "name": "Button",
+      "purpose": "Primary, secondary, and disabled actions",
+      "states": ["default", "hover", "focus", "active", "disabled"],
+      "tokens": ["--od-accent", "--od-border", "--od-focus", "--od-radius-control"]
+    },
+    {
+      "name": "SegmentedControl",
+      "purpose": "Switch between local views or states without navigation",
+      "states": ["default", "pressed", "focus", "disabled"],
+      "tokens": ["--od-surface", "--od-surface-muted", "--od-border", "--od-accent-strong"]
+    },
+    {
+      "name": "Panel",
+      "purpose": "Bounded content area with header and body",
+      "states": ["default", "loading", "empty", "error"],
+      "tokens": ["--od-surface", "--od-border", "--od-shadow-panel", "--od-radius-panel"]
+    },
+    {
+      "name": "DataTable",
+      "purpose": "Dense review or operations records",
+      "states": ["default", "hover", "selected", "empty", "loading", "error"],
+      "tokens": ["--od-surface", "--od-border", "--od-surface-muted", "--od-text-muted"]
+    },
+    {
+      "name": "StatusPill",
+      "purpose": "Compact status summary inside rows and cards",
+      "states": ["success", "warning", "danger", "neutral"],
+      "tokens": ["--od-success", "--od-warning", "--od-danger", "--od-text-muted"]
+    }
+  ]
+}

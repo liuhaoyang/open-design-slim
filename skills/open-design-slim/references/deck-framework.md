@@ -36,7 +36,7 @@ ordinary local HTML file.
 The deck is a prototype artifact. Validate it with:
 
 ```bash
-node skills/open-design-slim/scripts/od-slim.mjs validate prototype --entry <deck/index.html>
+node scripts/od-slim.mjs validate prototype --entry <deck/index.html>
 ```
 
 Then manually inspect the state and responsive checklist. The helper only

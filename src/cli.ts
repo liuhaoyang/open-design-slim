@@ -1,16 +1,89 @@
-#!/usr/bin/env node
-
+/*
+ * Open Design Slim CLI.
+ *
+ * This module is intentionally daemonless: local filesystem operations only,
+ * no product `od` command calls, no network access, and no Open Design runtime
+ * imports. The package can run independently from the skill bundle.
+ */
 import { createHash } from "node:crypto";
 import { cp, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import process2 from "node:process";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
-var runtimeDir = path.dirname(fileURLToPath(import.meta.url));
-var runtimeRoot = path.dirname(runtimeDir);
-var assetsRoot = path.join(runtimeRoot, "assets");
-var packageManifestPath = path.join(runtimeRoot, "package.json");
-var sourceManifestPath = path.join(runtimeDir, "manifest", "open-design-slim.sources.json");
-var fallbackPackageManifest = {
+
+type CliOptionValue = string | true;
+type CliOptions = Record<string, CliOptionValue | undefined>;
+
+interface ParsedArgs {
+  options: CliOptions;
+  positionals: string[];
+}
+
+interface HandoffValues {
+  kind: string;
+  entry: string;
+  supportingFiles: string;
+  templateSource: string;
+  designSource: string;
+  designSourceFiles: string;
+  provenanceFile: string;
+  stateCoverage: string;
+  validationCommands: string;
+  manualChecks: string;
+  browserChecks: string;
+  validationGaps: string;
+}
+
+interface ForbiddenPattern {
+  label: string;
+  pattern: RegExp;
+  allowLine?: (line: string) => boolean;
+}
+
+interface SourceManifestEntry {
+  kind: string;
+  targetPath: string;
+  mode: string;
+  hash?: string;
+}
+
+interface SourceManifest {
+  upstream: {
+    remote: string;
+    commit: string;
+  };
+  entries: SourceManifestEntry[];
+}
+
+interface SourceManifestReadResult {
+  label: string;
+  manifest: SourceManifest;
+}
+
+interface PackageManifest {
+  name: string;
+  version: string;
+  bin: Record<string, string>;
+}
+
+interface PatternSignal {
+  label: string;
+  pattern: RegExp;
+}
+
+interface HandoffValidationOptions {
+  required: boolean;
+}
+
+type JsonObject = Record<string, unknown>;
+
+const runtimeDir = path.dirname(fileURLToPath(import.meta.url));
+const runtimeRoot = path.dirname(runtimeDir);
+const assetsRoot = path.join(runtimeRoot, "assets");
+const packageManifestPath = path.join(runtimeRoot, "package.json");
+const sourceManifestPath = path.join(runtimeDir, "manifest", "open-design-slim.sources.json");
+
+const fallbackPackageManifest: PackageManifest = {
   name: "open-design-slim-cli",
   version: "0.1.0",
   bin: {
@@ -18,11 +91,13 @@ var fallbackPackageManifest = {
     "od-slim": "scripts/od-slim.mjs"
   }
 };
-var fallbackUpstream = {
+
+const fallbackUpstream = {
   remote: "https://github.com/nexu-io/open-design",
   commit: "657fb09f3ab34f6120dcd5171ae66dbb7532d83c"
 };
-var productOdSubcommands = [
+
+const productOdSubcommands = [
   "amr",
   "artifact",
   "artifacts",
@@ -63,10 +138,12 @@ var productOdSubcommands = [
   "version",
   "whats-new"
 ];
-var productOdCommandPattern = new RegExp(
+
+const productOdCommandPattern = new RegExp(
   String.raw`(?:^|[^\w./-])od\s+(?:${productOdSubcommands.map(escapeRegExp).join("|")})\b`
 );
-var forbiddenPatterns = [
+
+const forbiddenPatterns: ForbiddenPattern[] = [
   { label: "Open Design daemon API route", pattern: /\/api\//, allowLine: isApiRuntimeBoundaryDenialLine },
   { label: "Open Design daemon URL", pattern: /\bOD_DAEMON_URL\b/ },
   { label: "Open Design project ID", pattern: /\bOD_PROJECT_ID\b/ },
@@ -78,7 +155,8 @@ var forbiddenPatterns = [
   { label: "Electron runtime dependency", pattern: /\belectron\b/i },
   { label: "Open Design product CLI call", pattern: productOdCommandPattern }
 ];
-var requiredDesignSystemFiles = [
+
+const requiredDesignSystemFiles = [
   "manifest.json",
   "DESIGN.md",
   "USAGE.md",
@@ -86,8 +164,10 @@ var requiredDesignSystemFiles = [
   "components.manifest.json",
   "source/provenance.json"
 ];
-var textFilePattern = /\.(css|html|json|md|mjs|js|jsx|ts|tsx|txt)$/i;
-var handoffSections = [
+
+const textFilePattern = /\.(css|html|json|md|mjs|js|jsx|ts|tsx|txt)$/i;
+
+const handoffSections = [
   "## Artifact",
   "## Source Files",
   "## Design System",
@@ -96,7 +176,8 @@ var handoffSections = [
   "## Runtime Boundary",
   "## Validation Gaps"
 ];
-function usage() {
+
+function usage(): string {
   return `Open Design Slim CLI
 
 Usage:
@@ -115,59 +196,74 @@ Boundary:
   Local filesystem only. No od command calls, no network, no daemon API, and no
   daemon data-root dependency.`;
 }
-async function runCli(args = process2.argv.slice(2)) {
+
+export async function runCli(args: string[] = process.argv.slice(2)): Promise<void> {
   const { options, positionals } = parseOptions(args);
+
   if (options.help === true || positionals.length === 0) {
     writeLine(usage());
     return;
   }
+
   const [command, subject] = positionals;
+
   if (command === "init" && subject === "prototype") {
     await initPrototype(options);
     return;
   }
+
   if (command === "init" && subject === "design-system") {
     await initDesignSystem(options);
     return;
   }
+
   if (command === "validate" && subject === "prototype") {
     await validatePrototype(options);
     return;
   }
+
   if (command === "validate" && subject === "design-system") {
     await validateDesignSystem(options);
     return;
   }
+
   if (command === "bundle" && subject === "handoff") {
     await bundleHandoff(options);
     return;
   }
+
   if (command === "manifest" && subject === "show") {
     await manifestShow(options);
     return;
   }
+
   if (command === "sync") {
     throw new Error("sync check/write are reserved for a future deterministic snapshot workflow.");
   }
+
   throw new Error(`Unknown command: ${positionals.join(" ")}`);
 }
-function parseOptions(args) {
-  const options = {};
+
+function parseOptions(args: string[]): ParsedArgs {
+  const options: CliOptions = {};
   const positionals = [];
+
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
-    if (arg === void 0) {
+    if (arg === undefined) {
       continue;
     }
     if (!arg.startsWith("--")) {
       positionals.push(arg);
       continue;
     }
+
     const key = arg.slice(2);
     if (key === "help" || key === "json") {
       options[key] = true;
       continue;
     }
+
     const value = args[index + 1];
     if (!value || value.startsWith("--")) {
       throw new Error(`Missing value for --${key}`);
@@ -175,23 +271,28 @@ function parseOptions(args) {
     options[key] = value;
     index += 1;
   }
+
   return { options, positionals };
 }
-function requireOption(options, key) {
+
+function requireOption(options: CliOptions, key: string): string {
   const value = options[key];
   if (typeof value !== "string" || value.length === 0) {
     throw new Error(`Missing required --${key}`);
   }
   return value;
 }
-function getStringOption(options, key) {
+
+function getStringOption(options: CliOptions, key: string): string | undefined {
   const value = options[key];
-  return typeof value === "string" ? value : void 0;
+  return typeof value === "string" ? value : undefined;
 }
-function resolveOutput(target) {
-  return path.resolve(process2.cwd(), target);
+
+function resolveOutput(target: string): string {
+  return path.resolve(process.cwd(), target);
 }
-async function copyDirectory(source, destination) {
+
+async function copyDirectory(source: string, destination: string): Promise<void> {
   await mkdir(path.dirname(destination), { recursive: true });
   await cp(source, destination, {
     recursive: true,
@@ -199,18 +300,21 @@ async function copyDirectory(source, destination) {
     errorOnExist: true
   });
 }
-async function initPrototype(options) {
+
+async function initPrototype(options: CliOptions): Promise<void> {
   const kind = requireOption(options, "kind");
   const output = resolveOutput(requireOption(options, "output"));
-  const templates = {
+  const templates: Record<string, string> = {
     static: "static-html",
     react: "react-prototype",
     deck: "deck-html"
   };
+
   const template = templates[kind];
   if (!template) {
     throw new Error(`Unsupported prototype kind "${kind}". Expected static, react, or deck.`);
   }
+
   await copyDirectory(path.join(assetsRoot, "templates", template), output);
   await writeHandoff(output, {
     kind: `${kind} prototype`,
@@ -228,13 +332,16 @@ async function initPrototype(options) {
   });
   writeLine(`Initialized ${kind} prototype at ${output}`);
 }
-async function initDesignSystem(options) {
+
+async function initDesignSystem(options: CliOptions): Promise<void> {
   const output = resolveOutput(requireOption(options, "output"));
   const name = requireOption(options, "name");
   const source = path.join(assetsRoot, "design-systems", "default");
+
   await copyDirectory(source, output);
+
   const designPath = path.join(output, "DESIGN.md");
-  const packageManifestPath2 = path.join(output, "manifest.json");
+  const packageManifestPath = path.join(output, "manifest.json");
   const manifestPath = path.join(output, "components.manifest.json");
   const provenancePath = path.join(output, "source", "provenance.json");
   const design = await readFile(designPath, "utf8");
@@ -243,24 +350,25 @@ async function initDesignSystem(options) {
     design.replace("# Open Design Slim Default System", `# ${name} Design System`),
     "utf8"
   );
-  const packageManifest = parseJsonObject(await readFile(packageManifestPath2, "utf8"), "manifest.json");
+
+  const packageManifest = parseJsonObject(await readFile(packageManifestPath, "utf8"), "manifest.json");
   packageManifest.id = slugify(name);
   packageManifest.name = name;
   packageManifest.description = `Portable Open Design Slim skill bundle baseline for ${name}.`;
-  await writeFile(packageManifestPath2, `${JSON.stringify(packageManifest, null, 2)}
-`, "utf8");
+  await writeFile(packageManifestPath, `${JSON.stringify(packageManifest, null, 2)}\n`, "utf8");
+
   const manifest = parseJsonObject(await readFile(manifestPath, "utf8"), "components.manifest.json");
   manifest.name = name;
-  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}
-`, "utf8");
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+
   const provenance = parseJsonObject(await readFile(provenancePath, "utf8"), "source/provenance.json");
   provenance.bundleName = name;
   provenance.localization = {
     renamedByHelper: true,
     requestedName: name
   };
-  await writeFile(provenancePath, `${JSON.stringify(provenance, null, 2)}
-`, "utf8");
+  await writeFile(provenancePath, `${JSON.stringify(provenance, null, 2)}\n`, "utf8");
+
   await writeHandoff(output, {
     kind: "design-system",
     entry: "DESIGN.md",
@@ -277,17 +385,20 @@ async function initDesignSystem(options) {
   });
   writeLine(`Initialized design system "${name}" at ${output}`);
 }
-async function validatePrototype(options) {
-  const entry = path.resolve(process2.cwd(), requireOption(options, "entry"));
+
+async function validatePrototype(options: CliOptions): Promise<void> {
+  const entry = path.resolve(process.cwd(), requireOption(options, "entry"));
   const dirOption = getStringOption(options, "dir");
-  const dir = dirOption ? path.resolve(process2.cwd(), dirOption) : path.dirname(entry);
+  const dir = dirOption ? path.resolve(process.cwd(), dirOption) : path.dirname(entry);
   const text = await readFile(entry, "utf8");
-  const failures = [];
+  const failures: string[] = [];
   const extension = path.extname(entry);
   const textFiles = await listTextFiles(dir);
+
   if (![".html", ".jsx", ".tsx"].includes(extension)) {
     failures.push(`Unsupported prototype entry extension: ${extension || "(none)"}`);
   }
+
   if (extension === ".html") {
     if (!/<!doctype html>/i.test(text)) failures.push("HTML entry is missing <!doctype html>.");
     if (!/name=["']viewport["']/i.test(text)) failures.push("HTML entry is missing viewport metadata.");
@@ -295,22 +406,27 @@ async function validatePrototype(options) {
     if (!/<title>[^<]+<\/title>/i.test(text)) failures.push("HTML entry is missing a non-empty title.");
     validateHtmlA11y(text, entry, failures);
   }
+
   if (extension === ".jsx" || extension === ".tsx") {
     if (!/export\s+default/.test(text)) failures.push("React entry is missing a default export.");
     validateReactPrototypeA11y(text, entry, failures);
     validateReactPrototypeStateCoverage(text, failures);
   }
+
   for (const file of textFiles) {
     const fileText = await readFile(file, "utf8");
     failures.push(...findForbidden(fileText, file));
   }
+
   validatePrototypeStateCoverage(text, failures);
   await validateHandoff(path.join(dir, "OPEN_DESIGN_SLIM_HANDOFF.md"), failures, { required: true });
   reportValidation("prototype", failures);
 }
-async function validateDesignSystem(options) {
-  const dir = path.resolve(process2.cwd(), requireOption(options, "dir"));
-  const failures = [];
+
+async function validateDesignSystem(options: CliOptions): Promise<void> {
+  const dir = path.resolve(process.cwd(), requireOption(options, "dir"));
+  const failures: string[] = [];
+
   for (const file of requiredDesignSystemFiles) {
     const fullPath = path.join(dir, file);
     try {
@@ -319,9 +435,10 @@ async function validateDesignSystem(options) {
       failures.push(`Missing required design-system file: ${file}`);
     }
   }
-  const packageManifestPath2 = path.join(dir, "manifest.json");
+
+  const packageManifestPath = path.join(dir, "manifest.json");
   try {
-    const packageManifest = parseJsonObject(await readFile(packageManifestPath2, "utf8"), "manifest.json");
+    const packageManifest = parseJsonObject(await readFile(packageManifestPath, "utf8"), "manifest.json");
     if (packageManifest.schemaVersion !== "od-design-system-project/v1") {
       failures.push("manifest.json must declare schemaVersion od-design-system-project/v1.");
     }
@@ -329,11 +446,11 @@ async function validateDesignSystem(options) {
     if (!packageManifest.name) failures.push("manifest.json is missing name.");
     const source = getJsonObject(packageManifest, "source");
     if (!source?.type) failures.push("manifest.json is missing source.type.");
-    const files2 = getJsonObject(packageManifest, "files");
-    if (files2?.design !== "DESIGN.md") {
+    const files = getJsonObject(packageManifest, "files");
+    if (files?.design !== "DESIGN.md") {
       failures.push("manifest.json files.design must point at DESIGN.md.");
     }
-    if (files2?.tokens !== "tokens.css") {
+    if (files?.tokens !== "tokens.css") {
       failures.push("manifest.json files.tokens must point at tokens.css.");
     }
     if (packageManifest.componentsManifest !== "components.manifest.json") {
@@ -346,6 +463,7 @@ async function validateDesignSystem(options) {
   } catch (error) {
     failures.push(`manifest.json is not valid JSON: ${formatError(error)}`);
   }
+
   const manifestPath = path.join(dir, "components.manifest.json");
   try {
     const manifest = parseJsonObject(await readFile(manifestPath, "utf8"), "components.manifest.json");
@@ -356,6 +474,7 @@ async function validateDesignSystem(options) {
   } catch (error) {
     failures.push(`components.manifest.json is not valid JSON: ${formatError(error)}`);
   }
+
   const provenancePath = path.join(dir, "source", "provenance.json");
   try {
     const provenance = parseJsonObject(await readFile(provenancePath, "utf8"), "source/provenance.json");
@@ -369,16 +488,19 @@ async function validateDesignSystem(options) {
   } catch (error) {
     failures.push(`source/provenance.json is not valid JSON: ${formatError(error)}`);
   }
+
   const files = await listTextFiles(dir);
   for (const file of files) {
     const text = await readFile(file, "utf8");
     failures.push(...findForbidden(text, file));
   }
+
   await validateHandoff(path.join(dir, "OPEN_DESIGN_SLIM_HANDOFF.md"), failures, { required: false });
   reportValidation("design-system", failures);
 }
-async function bundleHandoff(options) {
-  const dir = path.resolve(process2.cwd(), requireOption(options, "dir"));
+
+async function bundleHandoff(options: CliOptions): Promise<void> {
+  const dir = path.resolve(process.cwd(), requireOption(options, "dir"));
   await mkdir(dir, { recursive: true });
   await writeHandoff(dir, {
     kind: "draft prototype or design-system handoff",
@@ -396,7 +518,8 @@ async function bundleHandoff(options) {
   });
   writeLine(`Wrote handoff template at ${path.join(dir, "OPEN_DESIGN_SLIM_HANDOFF.md")}`);
 }
-async function manifestShow(options) {
+
+async function manifestShow(options: CliOptions): Promise<void> {
   const packageManifest = await readPackageManifest();
   const sourceManifestResult = await readSourceManifest();
   const sourceManifest = sourceManifestResult.manifest;
@@ -408,10 +531,12 @@ async function manifestShow(options) {
     },
     sourceManifest
   };
+
   if (options.json === true) {
     writeLine(`${JSON.stringify(output, null, 2)}`);
     return;
   }
+
   writeLine(`Open Design Slim ${packageManifest.version}`);
   writeLine(`Package: ${packageManifest.name}`);
   writeLine(`Binaries: ${Object.keys(packageManifest.bin).join(", ")}`);
@@ -424,7 +549,8 @@ async function manifestShow(options) {
     writeLine(`- ${entry.kind}: ${entry.targetPath} (${entry.mode}, ${hash})`);
   }
 }
-async function writeHandoff(dir, values) {
+
+async function writeHandoff(dir: string, values: HandoffValues): Promise<void> {
   const content = `# Open Design Slim Handoff
 
 ## Artifact
@@ -468,28 +594,36 @@ async function writeHandoff(dir, values) {
 `;
   await writeFile(path.join(dir, "OPEN_DESIGN_SLIM_HANDOFF.md"), content, "utf8");
 }
-function slugify(value) {
-  const slug = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+function slugify(value: string): string {
+  const slug = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
   return slug || "local-design-system";
 }
-function findForbidden(text, file) {
-  const failures = [];
+
+function findForbidden(text: string, file: string): string[] {
+  const failures: string[] = [];
   for (const item of forbiddenPatterns) {
     const offendingLine = text.split(/\r?\n/).find((line) => item.pattern.test(line) && !item.allowLine?.(line));
-    if (offendingLine !== void 0) {
-      failures.push(`${path.relative(process2.cwd(), file)} contains forbidden dependency: ${item.label}`);
+    if (offendingLine !== undefined) {
+      failures.push(`${path.relative(process.cwd(), file)} contains forbidden dependency: ${item.label}`);
     }
   }
   return failures;
 }
-function escapeRegExp(value) {
+
+function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
-function isApiRuntimeBoundaryDenialLine(line) {
+
+function isApiRuntimeBoundaryDenialLine(line: string): boolean {
   return /^[-*]\s*Calls\s+`?\/api\/\*`?:\s*no\.?\s*$/i.test(line.trim());
 }
-async function listTextFiles(dir) {
-  const files = [];
+
+async function listTextFiles(dir: string): Promise<string[]> {
+  const files: string[] = [];
   const entries = await readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
@@ -497,7 +631,7 @@ async function listTextFiles(dir) {
       continue;
     }
     if (entry.isDirectory()) {
-      files.push(...await listTextFiles(fullPath));
+      files.push(...(await listTextFiles(fullPath)));
       continue;
     }
     if (entry.isFile() && textFilePattern.test(entry.name)) {
@@ -506,8 +640,9 @@ async function listTextFiles(dir) {
   }
   return files;
 }
-function validateHtmlA11y(text, entry, failures) {
-  const label = path.relative(process2.cwd(), entry);
+
+function validateHtmlA11y(text: string, entry: string, failures: string[]): void {
+  const label = path.relative(process.cwd(), entry);
   if (!/<main\b/i.test(text)) failures.push(`${label} is missing a semantic <main> landmark.`);
   if (!/:focus-visible\b|focus-visible/i.test(text)) {
     failures.push(`${label} is missing visible focus-state CSS or equivalent focus-visible marker.`);
@@ -515,6 +650,7 @@ function validateHtmlA11y(text, entry, failures) {
   if (/<input\b/i.test(text) && !/<label\b/i.test(text)) {
     failures.push(`${label} includes inputs but no labels.`);
   }
+
   const buttonPattern = /<button\b([^>]*)>([\s\S]*?)<\/button>/gi;
   let match;
   while ((match = buttonPattern.exec(text)) !== null) {
@@ -525,28 +661,32 @@ function validateHtmlA11y(text, entry, failures) {
     }
   }
 }
-function validateReactPrototypeA11y(text, entry, failures) {
-  const label = path.relative(process2.cwd(), entry);
-  const requiredSignals = [
+
+function validateReactPrototypeA11y(text: string, entry: string, failures: string[]): void {
+  const label = path.relative(process.cwd(), entry);
+  const requiredSignals: PatternSignal[] = [
     { label: "a semantic main landmark", pattern: /<main\b|role=["']main["']/i },
     { label: "accessible region or control labels", pattern: /aria-label=|aria-labelledby=/i },
     { label: "interactive state semantics", pattern: /aria-pressed=|aria-selected=|aria-current=|aria-disabled=/i },
     { label: "loading status semantics", pattern: /aria-busy=|role=["']status["']|role=["']alert["']/i },
     { label: "visible focus-state styling", pattern: /:focus-visible\b|focus-visible/i }
   ];
+
   for (const signal of requiredSignals) {
     if (!signal.pattern.test(text)) {
       failures.push(`${label} is missing ${signal.label}.`);
     }
   }
+
   if (/<input\b/i.test(text) && !(/<label\b/i.test(text) || /aria-label=|aria-labelledby=/i.test(text))) {
     failures.push(`${label} includes inputs but no labels or aria label references.`);
   }
 }
-function validatePrototypeStateCoverage(text, failures) {
+
+function validatePrototypeStateCoverage(text: string, failures: string[]): void {
   const isDeck = /\bdeck\b|class=["'][^"']*\bslide\b/i.test(text);
   if (isDeck) {
-    const requiredDeckSignals = [
+    const requiredDeckSignals: PatternSignal[] = [
       { label: "active slide state", pattern: /\bis-active\b|\baria-current\b/i },
       { label: "disabled slide endpoint", pattern: /\bdisabled\b/i },
       { label: "focus treatment", pattern: /focus-visible|\bfocus\b/i },
@@ -557,7 +697,8 @@ function validatePrototypeStateCoverage(text, failures) {
     }
     return;
   }
-  const stateSignals = [
+
+  const stateSignals: PatternSignal[] = [
     { label: "populated content", pattern: /aria-selected|data-state=["']populated|populated|table|row|queue/i },
     { label: "loading state", pattern: /aria-busy|loading|skeleton/i },
     { label: "empty state", pattern: /\bempty\b|no .*match|no .*items|clear filters/i },
@@ -569,15 +710,20 @@ function validatePrototypeStateCoverage(text, failures) {
   ];
   const present = stateSignals.filter((signal) => signal.pattern.test(text));
   if (present.length < 5) {
-    const missing = stateSignals.filter((signal) => !signal.pattern.test(text)).map((signal) => signal.label).join(", ");
+    const missing = stateSignals
+      .filter((signal) => !signal.pattern.test(text))
+      .map((signal) => signal.label)
+      .join(", ");
     failures.push(`Prototype state coverage is too thin; missing signals include: ${missing}`);
   }
 }
-function validateReactPrototypeStateCoverage(text, failures) {
+
+function validateReactPrototypeStateCoverage(text: string, failures: string[]): void {
   if (!/\buseState\s*\(|\buseReducer\s*\(/.test(text)) {
     failures.push("React prototype is missing explicit state management for interactive states.");
   }
-  const stateSignals = [
+
+  const stateSignals: PatternSignal[] = [
     { label: "populated content", pattern: /aria-selected|data-state=["']populated|populated|table|row|queue/i },
     { label: "loading state", pattern: /aria-busy|loading|skeleton/i },
     { label: "empty state", pattern: /\bempty\b|no .*match|no .*items|clear filters/i },
@@ -592,19 +738,22 @@ function validateReactPrototypeStateCoverage(text, failures) {
     failures.push(`React prototype is missing state coverage signals: ${missing.map((signal) => signal.label).join(", ")}`);
   }
 }
-async function validateHandoff(file, failures, { required }) {
-  let text;
+
+async function validateHandoff(file: string, failures: string[], { required }: HandoffValidationOptions): Promise<void> {
+  let text: string;
   try {
     text = await readFile(file, "utf8");
   } catch {
-    if (required) failures.push(`Missing required handoff file: ${path.relative(process2.cwd(), file)}`);
+    if (required) failures.push(`Missing required handoff file: ${path.relative(process.cwd(), file)}`);
     return;
   }
+
   for (const section of handoffSections) {
     if (!text.includes(section)) {
-      failures.push(`${path.relative(process2.cwd(), file)} is missing handoff section: ${section}`);
+      failures.push(`${path.relative(process.cwd(), file)} is missing handoff section: ${section}`);
     }
   }
+
   const placeholderPatterns = [
     { label: "square-bracket placeholder", pattern: /\[[^\]\n]*(?:fill|todo|tbd|placeholder|path|file|command|source|check|\.{3})[^\]\n]*\]/i },
     { label: "fill-in placeholder", pattern: /\bfill\s+in\b/i },
@@ -617,38 +766,43 @@ async function validateHandoff(file, failures, { required }) {
   ];
   for (const item of placeholderPatterns) {
     if (item.pattern.test(text)) {
-      failures.push(`${path.relative(process2.cwd(), file)} contains ${item.label}.`);
+      failures.push(`${path.relative(process.cwd(), file)} contains ${item.label}.`);
     }
   }
+
   if (!/- Uses Open Design daemon: no/i.test(text)) {
-    failures.push(`${path.relative(process2.cwd(), file)} must state that it does not use the Open Design daemon.`);
+    failures.push(`${path.relative(process.cwd(), file)} must state that it does not use the Open Design daemon.`);
   }
   if (!/- Calls \/api\/\*: no/i.test(text)) {
-    failures.push(`${path.relative(process2.cwd(), file)} must state that it does not call /api/*.`);
+    failures.push(`${path.relative(process.cwd(), file)} must state that it does not call /api/*.`);
   }
 }
-function reportValidation(label, failures) {
+
+function reportValidation(label: string, failures: string[]): void {
   if (failures.length > 0) {
     console.error(`${label} validation failed:`);
     for (const failure of failures) {
       console.error(`- ${failure}`);
     }
-    process2.exitCode = 1;
+    process.exitCode = 1;
     return;
   }
   writeLine(`${label} validation passed.`);
 }
-function hashText(text) {
+
+export function hashText(text: string): string {
   return createHash("sha256").update(text).digest("hex");
 }
-function parseJsonObject(text, label) {
-  const value = JSON.parse(text);
+
+function parseJsonObject(text: string, label: string): JsonObject {
+  const value: unknown = JSON.parse(text);
   if (!isJsonObject(value)) {
     throw new Error(`${label} must contain a JSON object.`);
   }
   return value;
 }
-function parsePackageManifest(text) {
+
+function parsePackageManifest(text: string): PackageManifest {
   const value = parseJsonObject(text, "package.json");
   if (typeof value.name !== "string") {
     throw new Error("package.json is missing name.");
@@ -666,7 +820,8 @@ function parsePackageManifest(text) {
     bin
   };
 }
-async function readPackageManifest() {
+
+async function readPackageManifest(): Promise<PackageManifest> {
   try {
     return parsePackageManifest(await readFile(packageManifestPath, "utf8"));
   } catch (error) {
@@ -676,10 +831,11 @@ async function readPackageManifest() {
     throw error;
   }
 }
-async function readSourceManifest() {
+
+async function readSourceManifest(): Promise<SourceManifestReadResult> {
   try {
     return {
-      label: path.relative(process2.cwd(), sourceManifestPath),
+      label: path.relative(process.cwd(), sourceManifestPath),
       manifest: parseSourceManifest(await readFile(sourceManifestPath, "utf8"))
     };
   } catch (error) {
@@ -692,14 +848,16 @@ async function readSourceManifest() {
     throw error;
   }
 }
-async function buildRuntimeSourceManifest() {
+
+async function buildRuntimeSourceManifest(): Promise<SourceManifest> {
   const roots = [
     path.join(assetsRoot, "templates"),
     path.join(assetsRoot, "design-systems", "default")
   ];
-  const entries = [];
+  const entries: SourceManifestEntry[] = [];
+
   for (const root of roots) {
-    let files;
+    let files: string[];
     try {
       files = await listTextFiles(root);
     } catch (error) {
@@ -718,13 +876,16 @@ async function buildRuntimeSourceManifest() {
       });
     }
   }
+
   entries.sort((left, right) => left.targetPath.localeCompare(right.targetPath));
+
   return {
     upstream: fallbackUpstream,
     entries
   };
 }
-function parseSourceManifest(text) {
+
+function parseSourceManifest(text: string): SourceManifest {
   const value = parseJsonObject(text, "open-design-slim.sources.json");
   const upstream = getJsonObject(value, "upstream");
   if (!upstream || typeof upstream.remote !== "string" || typeof upstream.commit !== "string") {
@@ -733,14 +894,14 @@ function parseSourceManifest(text) {
   if (!Array.isArray(value.entries)) {
     throw new Error("open-design-slim.sources.json is missing entries array.");
   }
-  const entries = value.entries.map((entry, index) => {
+  const entries: SourceManifestEntry[] = value.entries.map((entry: unknown, index: number) => {
     if (!isJsonObject(entry)) {
       throw new Error(`source manifest entry ${index} must be an object.`);
     }
     if (typeof entry.kind !== "string" || typeof entry.targetPath !== "string" || typeof entry.mode !== "string") {
       throw new Error(`source manifest entry ${index} is missing kind, targetPath, or mode.`);
     }
-    const parsedEntry = {
+    const parsedEntry: SourceManifestEntry = {
       kind: entry.kind,
       targetPath: entry.targetPath,
       mode: entry.mode
@@ -750,6 +911,7 @@ function parseSourceManifest(text) {
     }
     return parsedEntry;
   });
+
   return {
     upstream: {
       remote: upstream.remote,
@@ -758,42 +920,44 @@ function parseSourceManifest(text) {
     entries
   };
 }
-function isNotFound(error) {
+
+function isNotFound(error: unknown): boolean {
   return isJsonObjectLike(error) && error.code === "ENOENT";
 }
-function getJsonObject(value, key) {
+
+function getJsonObject(value: JsonObject, key: string): JsonObject | undefined {
   const child = value[key];
-  return isJsonObject(child) ? child : void 0;
+  return isJsonObject(child) ? child : undefined;
 }
-function getStringRecord(value, key) {
+
+function getStringRecord(value: JsonObject, key: string): Record<string, string> | undefined {
   const child = getJsonObject(value, key);
   if (!child) {
-    return void 0;
+    return undefined;
   }
-  const result = {};
+
+  const result: Record<string, string> = {};
   for (const [recordKey, recordValue] of Object.entries(child)) {
     if (typeof recordValue !== "string") {
-      return void 0;
+      return undefined;
     }
     result[recordKey] = recordValue;
   }
   return result;
 }
-function isJsonObject(value) {
+
+function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-function isJsonObjectLike(value) {
+
+function isJsonObjectLike(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
-function formatError(error) {
+
+function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
-function writeLine(message) {
-  process2.stdout.write(`${message}
-`);
-}
 
-runCli(process.argv.slice(2)).catch((error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});
+function writeLine(message: string): void {
+  process.stdout.write(`${message}\n`);
+}

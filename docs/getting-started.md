@@ -11,8 +11,10 @@ runtime.
 - Deck-style HTML artifact from `assets/templates/deck-html/index.html`.
 - Portable design-system bundle from `assets/design-systems/default/`.
 
-The canonical skill entrypoint is `skills/open-design-slim/SKILL.md`. Keep the
-slug `open-design-slim` when copying, publishing, or documenting the bundle.
+The canonical skill entrypoint is `skills/open-design-slim/SKILL.md`. The Open
+Design Slim CLI command is `open-design-slim`, with `od-slim` as a short alias.
+Keep the slug `open-design-slim` when copying, publishing, or documenting the
+bundle.
 
 ## Recommended Agent Flow
 
@@ -30,26 +32,40 @@ slug `open-design-slim` when copying, publishing, or documenting the bundle.
    - `contracts/provenance.md`
 5. Prefer host repository UI code, tokens, screenshots, and existing
    `DESIGN.md` files over the bundled default design system.
-6. Use the helper CLI or manual quality files before final handoff.
+6. Use the bundled skill helper, Open Design Slim CLI, or manual quality files
+   before final handoff.
 
 ## Quick Commands
 
-From a repository that contains the skill bundle:
+When Open Design Slim CLI is installed or available from this source checkout:
 
 ```bash
-node skills/open-design-slim/scripts/od-slim.mjs --help
-node skills/open-design-slim/scripts/od-slim.mjs init prototype --kind static --output ./prototype
-node skills/open-design-slim/scripts/od-slim.mjs init prototype --kind react --output ./prototype-react
-node skills/open-design-slim/scripts/od-slim.mjs init prototype --kind deck --output ./deck
-node skills/open-design-slim/scripts/od-slim.mjs init design-system --output ./design-system --name "Product Name"
+open-design-slim --help
+open-design-slim init prototype --kind static --output ./prototype
+open-design-slim init prototype --kind react --output ./prototype-react
+open-design-slim init prototype --kind deck --output ./deck
+open-design-slim init design-system --output ./design-system --name "Product Name"
+open-design-slim manifest show
 ```
 
 After editing the generated scaffold into a real artifact:
 
 ```bash
-node skills/open-design-slim/scripts/od-slim.mjs validate prototype --entry ./prototype/index.html
-node skills/open-design-slim/scripts/od-slim.mjs validate design-system --dir ./design-system
+open-design-slim validate prototype --entry ./prototype/index.html
+open-design-slim validate design-system --dir ./design-system
 ```
+
+The `od-slim` binary is a CLI alias. Skill files should not invoke
+repository paths outside the skill directory. Inside an installed skill, run the
+self-contained helper from the skill root:
+
+```bash
+node scripts/od-slim.mjs --help
+node scripts/od-slim.mjs validate design-system --dir assets/design-systems/default
+```
+
+If Node is unavailable, copy templates manually and use the contracts and
+quality checklists.
 
 ## Completion Boundary
 

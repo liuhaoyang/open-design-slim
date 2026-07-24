@@ -9,16 +9,61 @@ upstream Open Design source and is not part of the slim bundle payload.
 ```text
 .
   README.md
+  package.json
+  bin/
+  src/
+  dist/
+  assets/
   docs/
+  scripts/
+  tests/
   skills/open-design-slim/
   open-design/
 ```
 
 - `README.md`: repository entrypoint for users and maintainers.
+- `package.json`: package metadata, `open-design-slim` binary, and `od-slim`
+  alias. It intentionally does not register an `od` binary.
+- `bin/`: package binary shims.
+- `src/`: shared local CLI implementation and source manifest.
+- `dist/`: generated package CLI JavaScript consumed by `bin/`.
+- `assets/`: CLI-shipped templates and default design-system snapshot.
 - `docs/`: standalone documentation for the bundle, helper CLI, validation, and
   maintenance.
+- `scripts/`: build and consistency checks for generated artifacts and assets.
+- `tests/`: minimal CLI behavior and failure-mode tests.
 - `skills/open-design-slim/`: canonical skill bundle. Keep this slug stable.
 - `open-design/`: upstream submodule used for source context only.
+
+## Package CLI
+
+```text
+bin/
+  open-design-slim.mjs
+  od-slim.mjs
+src/
+  cli.ts
+  manifest/open-design-slim.sources.json
+dist/
+  cli.mjs
+assets/
+  templates/
+  design-systems/default/
+tsconfig.json
+```
+
+- `bin/open-design-slim.mjs` is the canonical package-level command shim.
+- `bin/od-slim.mjs` is the package-level short alias.
+- `src/cli.ts` owns command routing, scaffold copying, validation, handoff
+  creation, and `manifest show`.
+- `dist/cli.mjs` is the generated publishable JavaScript entry imported by both
+  package shims. Published packages do not ship raw TypeScript source.
+- `src/manifest/open-design-slim.sources.json` records the pinned upstream
+  submodule commit and local snapshot entries used by `manifest show`.
+- `assets/` is the CLI package payload used by scaffold and design-system init
+  commands. This keeps the CLI publishable without the skill bundle.
+- `tsconfig.json` typechecks the TypeScript CLI source with NodeNext module
+  semantics.
 
 ## Skill Bundle
 
@@ -33,7 +78,7 @@ skills/open-design-slim/
 ```
 
 - `SKILL.md` is the agent-facing entrypoint with triggers, scope, generation
-  modes, workflow summary, and helper examples.
+  modes, workflow summary, and optional CLI command examples.
 - `references/` contains mode-specific generation guidance:
   `core.md`, `prototype-workflow.md`, `design-system-workflow.md`, and
   `deck-framework.md`.
@@ -43,8 +88,9 @@ skills/open-design-slim/
   checklist, responsive viewports, visual QA recipe, and anti-patterns.
 - `assets/` contains templates, the bundled default design system, golden
   examples, and anti-pattern examples.
-- `scripts/od-slim.mjs` is the dependency-free helper CLI for local scaffolding,
-  validation, and handoff template creation.
+- `scripts/od-slim.mjs` is a self-contained generated helper built from
+  `src/cli.ts`. It uses the skill directory as its runtime root and must not
+  import or read files outside the skill folder.
 
 ## Documentation Map
 

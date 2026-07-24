@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "open-design-slim-sources/v1",
+  "generatedAt": "2026-07-24T00:00:00+08:00",
+  "upstream": {
+    "remote": "https://github.com/nexu-io/open-design",
+    "submodulePath": "open-design",
+    "commit": "657fb09f3ab34f6120dcd5171ae66dbb7532d83c",
+    "role": "source context only; not a runtime dependency or shipped payload"
+  },
+  "entries": [
+    {
+      "kind": "template",
+      "mode": "manual-port",
+      "sourcePath": "open-design/templates/deck-framework.html",
+      "targetPath": "assets/templates/deck-html/index.html",
+      "hash": "4052622a4da999a75439881bde5e81aa7e18eb366b75cb4b08e94ad024d55b9a",
+      "provenance": "Deck-style HTML template maintained as a daemonless local-file snapshot."
+    },
+    {
+      "kind": "template",
+      "mode": "manual-port",
+      "sourcePath": "assets/templates/static-html/index.html",
+      "targetPath": "assets/templates/static-html/index.html",
+      "hash": "99347d59e67e4bd1a04ea358b4ba002f3fd7aca87f82d111a9895cb477cdf945",
+      "provenance": "Open Design Slim static prototype template maintained in this repository."
+    },
+    {
+      "kind": "template",
+      "mode": "manual-port",
+      "sourcePath": "assets/templates/react-prototype/Prototype.jsx",
+      "targetPath": "assets/templates/react-prototype/Prototype.jsx",
+      "hash": "d30a95da9135815aa188e82514a74fd6e01d509934575874dc07c664b69b8216",
+      "provenance": "Open Design Slim React prototype template maintained in this repository."
+    },
+    {
+      "kind": "asset",
+      "mode": "manual-port",
+      "sourcePath": "assets/design-systems/default/manifest.json",
+      "targetPath": "assets/design-systems/default/manifest.json",
+      "hash": "698de16ea462c6d8208aa8a6ed78be4bebf9e5fabd9594eb9e43093728efb5e4",
+      "provenance": "Default daemonless design-system project manifest."
+    },
+    {
+      "kind": "asset",
+      "mode": "manual-port",
+      "sourcePath": "assets/design-systems/default/DESIGN.md",
+      "targetPath": "assets/design-systems/default/DESIGN.md",
+      "hash": "bafb74fc0634f9c0922e543a6bff69d30e8306ff8c460e317f4079ff56255bda",
+      "provenance": "Default daemonless design-system prose."
+    },
+    {
+      "kind": "asset",
+      "mode": "manual-port",
+      "sourcePath": "assets/design-systems/default/USAGE.md",
+      "targetPath": "assets/design-systems/default/USAGE.md",
+      "hash": "cb88eafc4bb4317eb5527d4a6eb39a311afec9547f25ac208f9df800280cd50e",
+      "provenance": "Default daemonless design-system usage notes."
+    },
+    {
+      "kind": "asset",
+      "mode": "manual-port",
+      "sourcePath": "assets/design-systems/default/tokens.css",
+      "targetPath": "assets/design-systems/default/tokens.css",
+      "hash": "c5cae2f264780d15058aabf6af3b3e54794407abbc45bbcc24d42c772c39743c",
+      "provenance": "Default semantic CSS tokens for Open Design Slim templates."
+    },
+    {
+      "kind": "asset",
+      "mode": "manual-port",
+      "sourcePath": "assets/design-systems/default/components.manifest.json",
+      "targetPath": "assets/design-systems/default/components.manifest.json",
+      "hash": "1fabfdbd03def60642d334747a5746e29d50611a72795f559cf28cc74fd64c17",
+      "provenance": "Default component and state inventory for daemonless generation."
+    },
+    {
+      "kind": "asset",
+      "mode": "manual-port",
+      "sourcePath": "assets/design-systems/default/source/provenance.json",
+      "targetPath": "assets/design-systems/default/source/provenance.json",
+      "hash": "1bf63be413a2aadc352d4206d050bb1792df83fb3c67565e6d41831d608f0531",
+      "provenance": "Default generated artifact provenance template."
+    },
+    {
+      "kind": "asset",
+      "mode": "manual-port",
+      "sourcePath": "assets/design-systems/default/preview/index.html",
+      "targetPath": "assets/design-systems/default/preview/index.html",
+      "hash": "42567f27c563f0836dadee2567853be488d9bc4efd02f61d4371c9f6d211c6d7",
+      "provenance": "Default daemonless design-system preview page."
+    },
+    {
+      "kind": "asset",
+      "mode": "manual-port",
+      "sourcePath": "assets/design-systems/default/ui_kits/app/index.html",
+      "targetPath": "assets/design-systems/default/ui_kits/app/index.html",
+      "hash": "5d87ed568b30780cfd1dd683504d9afe50967bea6a15736e27b3f3f3dd24515f",
+      "provenance": "Default daemonless app UI kit sample."
+    }
+  ]
+}
