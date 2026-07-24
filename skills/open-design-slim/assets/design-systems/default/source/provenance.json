@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "open-design-slim-provenance/v1",
+  "bundleName": "Open Design Slim Default",
+  "sourceType": "bundle_default",
+  "sources": [
+    {
+      "label": "bundle_default",
+      "path": "DESIGN.md",
+      "role": "design prose",
+      "notes": "Portable fallback design-system guidance for daemonless generation."
+    },
+    {
+      "label": "bundle_default",
+      "path": "tokens.css",
+      "role": "semantic token stylesheet",
+      "notes": "Compiled CSS custom properties used by bundled templates and examples."
+    },
+    {
+      "label": "bundle_default",
+      "path": "components.manifest.json",
+      "role": "component inventory",
+      "notes": "Machine-readable component and state inventory for coding agents."
+    },
+    {
+      "label": "bundle_default",
+      "path": "preview/index.html",
+      "role": "visual preview",
+      "notes": "Static preview for manual or browser screenshot inspection."
+    },
+    {
+      "label": "bundle_default",
+      "path": "ui_kits/app/index.html",
+      "role": "app shell reference",
+      "notes": "Operational UI shell reference for dense app-like prototypes."
+    }
+  ],
+  "runtimeBoundary": {
+    "usesOpenDesignDaemon": false,
+    "callsDaemonApiRoutes": false,
+    "requiresArtifactDatabase": false,
+    "requiresDaemonDataRoot": false,
+    "registeredInOpenDesign": false
+  },
+  "validationGaps": [
+    "Skill bundle default is a neutral fallback and has not been compared to the target host repository.",
+    "Visual QA requires opening generated artifacts in a browser or screenshot tool.",
+    "Generated prototypes must still replace sample content with domain-specific content before final delivery."
+  ]
+}

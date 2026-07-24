@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Open Design Slim Default Preview</title>
+    <link rel="stylesheet" href="../tokens.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--od-bg);
+        color: var(--od-text);
+        font-family: var(--od-font-body);
+        padding: 32px;
+      }
+
+      main {
+        max-width: 1040px;
+        margin: 0 auto;
+        display: grid;
+        gap: 20px;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      p {
+        color: var(--od-text-muted);
+        line-height: 1.6;
+      }
+
+      .swatches,
+      .components {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .swatch,
+      .component {
+        border: 1px solid var(--od-border);
+        border-radius: var(--od-radius-panel);
+        background: var(--od-surface);
+        padding: 16px;
+        min-height: 120px;
+      }
+
+      .chip {
+        display: inline-flex;
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      button {
+        min-height: 38px;
+        border: 1px solid var(--od-border);
+        border-radius: var(--od-radius-control);
+        background: var(--od-surface);
+        color: var(--od-text);
+        padding: 0 14px;
+        font: inherit;
+      }
+
+      button.primary {
+        background: var(--od-accent);
+        border-color: var(--od-accent);
+        color: #fff;
+      }
+
+      button:focus-visible {
+        outline: 3px solid var(--od-focus);
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 760px) {
+        body {
+          padding: 18px;
+        }
+
+        .swatches,
+        .components {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Open Design Slim Default</h1>
+        <p>Portable baseline for dense app prototypes and local design-system generation.</p>
+      </header>
+
+      <section>
+        <h2>Color roles</h2>
+        <div class="swatches">
+          <div class="swatch" style="background: var(--od-bg)">Background</div>
+          <div class="swatch" style="background: var(--od-surface)">Surface</div>
+          <div class="swatch" style="background: var(--od-surface-muted)">Muted surface</div>
+          <div class="swatch" style="background: var(--od-accent); color: #fff">Accent</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Components</h2>
+        <div class="components">
+          <div class="component">
+            <strong>Buttons</strong>
+            <p><button>Secondary</button> <button class="primary">Primary</button></p>
+          </div>
+          <div class="component">
+            <strong>Status</strong>
+            <p><span class="chip" style="background: #dff5ea; color: var(--od-success)">Ready</span></p>
+          </div>
+          <div class="component">
+            <strong>Focus</strong>
+            <p><button autofocus>Focusable</button></p>
+          </div>
+          <div class="component">
+            <strong>Disabled</strong>
+            <p><button disabled>Unavailable</button></p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

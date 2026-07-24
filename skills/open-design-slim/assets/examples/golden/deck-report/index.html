@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Golden Deck Report Example</title>
+    <style>
+      :root {
+        --bg: #10140f;
+        --surface: #f6f7f2;
+        --ink: #18201b;
+        --muted: #667066;
+        --accent: #2f6f5e;
+        --line: #d9dfd0;
+        --focus: #8fb8ff;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      .deck {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+      }
+
+      .slide {
+        display: none;
+        width: min(1120px, 100%);
+        min-height: min(720px, calc(100vh - 112px));
+        background: var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 14px;
+        padding: clamp(28px, 5vw, 58px);
+        box-shadow: 0 34px 70px rgba(0, 0, 0, 0.32);
+      }
+
+      .slide.is-active {
+        display: grid;
+        align-content: center;
+        gap: 24px;
+      }
+
+      .eyebrow {
+        color: var(--accent);
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 14ch;
+        font-size: clamp(3rem, 8vw, 5.7rem);
+        line-height: 1.04;
+      }
+
+      h2 {
+        max-width: 16ch;
+        font-size: clamp(2.2rem, 5vw, 4rem);
+        line-height: 1.05;
+      }
+
+      p {
+        max-width: 70ch;
+        color: var(--muted);
+        font-size: clamp(1rem, 2vw, 1.15rem);
+        line-height: 1.6;
+      }
+
+      .scorecard,
+      .decision-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .metric,
+      .decision,
+      .risk {
+        min-height: 170px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+        padding: 18px;
+      }
+
+      .metric span,
+      .decision span,
+      .risk span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 12px;
+        font-size: 2.4rem;
+      }
+
+      .risk {
+        border-style: dashed;
+      }
+
+      .controls {
+        position: fixed;
+        left: 50%;
+        bottom: 22px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transform: translateX(-50%);
+        color: #fff;
+      }
+
+      button {
+        min-width: 44px;
+        min-height: 38px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        cursor: pointer;
+        font: inherit;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.42;
+      }
+
+      button:focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 760px) {
+        .deck {
+          padding: 14px;
+          align-items: start;
+        }
+
+        .slide {
+          min-height: calc(100vh - 96px);
+          padding: 26px;
+        }
+
+        .scorecard,
+        .decision-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="deck" aria-live="polite">
+      <section class="slide is-active">
+        <div class="eyebrow">Artifact QA report</div>
+        <h1>Slim output is ready for handoff.</h1>
+        <p>
+          Golden reference for a deck-like report with one active slide, disabled
+          navigation endpoints, compact evidence cards, and no runtime bridge.
+        </p>
+      </section>
+
+      <section class="slide">
+        <div class="eyebrow">Evidence</div>
+        <h2>Validation covers shape, states, and runtime boundaries.</h2>
+        <div class="scorecard">
+          <article class="metric"><span>Prototype entries</span><strong>4</strong><p>Dashboard, form, mobile, and deck examples.</p></article>
+          <article class="metric"><span>State signals</span><strong>8</strong><p>Populated, empty, loading, error, selected, disabled, focus, mobile.</p></article>
+          <article class="metric"><span>Runtime calls</span><strong>0</strong><p>No daemon route, product CLI, or desktop dependency.</p></article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="eyebrow">Decision</div>
+        <h2>Ship portable generation with explicit gaps.</h2>
+        <div class="decision-grid">
+          <article class="decision"><span>Accept</span><p>Use the slim skill bundle for file generation and source-only validation.</p></article>
+          <article class="decision"><span>Require</span><p>Record design source, commands, state coverage, and visual QA gaps.</p></article>
+          <article class="risk"><span>Do not claim</span><p>Full Open Design parity, live preview, exporter, artifact DB, or provider support.</p></article>
+        </div>
+      </section>
+    </main>
+
+    <div class="controls" aria-label="Slide controls">
+      <button type="button" id="prev" aria-label="Previous slide" disabled>&lt;</button>
+      <span id="count">1 / 3</span>
+      <button type="button" id="next" aria-label="Next slide">&gt;</button>
+    </div>
+
+    <script>
+      const slides = [...document.querySelectorAll(".slide")];
+      const prev = document.querySelector("#prev");
+      const next = document.querySelector("#next");
+      const count = document.querySelector("#count");
+      let index = 0;
+
+      function render() {
+        slides.forEach((slide, slideIndex) => {
+          slide.classList.toggle("is-active", slideIndex === index);
+        });
+        prev.disabled = index === 0;
+        next.disabled = index === slides.length - 1;
+        count.textContent = `${index + 1} / ${slides.length}`;
+      }
+
+      prev.addEventListener("click", () => {
+        index = Math.max(0, index - 1);
+        render();
+      });
+      next.addEventListener("click", () => {
+        index = Math.min(slides.length - 1, index + 1);
+        render();
+      });
+    </script>
+  </body>
+</html>

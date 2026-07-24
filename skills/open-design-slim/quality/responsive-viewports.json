@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "viewports": [
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "checks": ["no horizontal overflow", "touch targets usable", "primary action visible"]
+    },
+    {
+      "name": "tablet",
+      "width": 768,
+      "height": 1024,
+      "checks": ["navigation adapts", "panels remain readable", "forms fit"]
+    },
+    {
+      "name": "desktop-compact",
+      "width": 1280,
+      "height": 720,
+      "checks": ["first viewport fits", "deck slides fit", "dense surfaces do not overlap"]
+    },
+    {
+      "name": "desktop-wide",
+      "width": 1440,
+      "height": 900,
+      "checks": ["max width is intentional", "spacing remains balanced", "tables remain scannable"]
+    }
+  ]
+}
