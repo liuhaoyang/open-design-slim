@@ -3,6 +3,14 @@ import { cp, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises"
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+var CliExitError = class extends Error {
+  exitCode;
+  constructor(message, exitCode = 1) {
+    super(message);
+    this.name = "CliExitError";
+    this.exitCode = exitCode;
+  }
+};
 var runtimeDir = path.dirname(fileURLToPath(import.meta.url));
 var runtimeRoot = path.dirname(runtimeDir);
 var assetsRoot = path.join(runtimeRoot, "assets");
@@ -627,12 +635,8 @@ async function validateHandoff(file, failures, { required }) {
 }
 function reportValidation(label, failures) {
   if (failures.length > 0) {
-    console.error(`${label} validation failed:`);
-    for (const failure of failures) {
-      console.error(`- ${failure}`);
-    }
-    process.exitCode = 1;
-    return;
+    throw new CliExitError(`${label} validation failed:
+${failures.map((failure) => `- ${failure}`).join("\n")}`);
   }
   writeLine(`${label} validation passed.`);
 }
@@ -791,6 +795,7 @@ function writeLine(message) {
 `);
 }
 export {
+  CliExitError,
   hashText,
   runCli
 };

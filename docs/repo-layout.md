@@ -46,6 +46,7 @@ src/
   manifest/open-design-slim.sources.json
 dist/
   cli.mjs
+  manifest/open-design-slim.sources.json
 assets/
   templates/
   design-systems/default/
@@ -58,6 +59,8 @@ tsconfig.json
   creation, and `manifest show`.
 - `dist/cli.mjs` is the generated publishable JavaScript entry imported by both
   package shims. Published packages do not ship raw TypeScript source.
+- `dist/manifest/open-design-slim.sources.json` is copied from `src/manifest/`
+  during build so published packages retain source provenance metadata.
 - `src/manifest/open-design-slim.sources.json` records the pinned upstream
   submodule commit and local snapshot entries used by `manifest show`.
 - `assets/` is the CLI package payload used by scaffold and design-system init

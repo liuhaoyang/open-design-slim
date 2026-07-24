@@ -56,6 +56,7 @@ For the publishable CLI package, include:
 - `package.json`
 - `bin/`
 - `dist/`
+- `dist/manifest/`
 - `assets/`
 
 For a host-neutral skill distribution, include:
