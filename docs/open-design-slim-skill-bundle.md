@@ -89,8 +89,8 @@ skills/open-design-slim/
 ```
 
 `SKILL.md` owns the trigger contract and routes the agent to references,
-contracts, quality files, templates, examples, and the optional helper script.
-It stays concise by design; detailed workflow material lives in side files.
+contracts, quality files, templates, examples, and the bundled helper. It stays
+concise by design; detailed workflow material lives in side files.
 
 ## Frontmatter Contract
 
@@ -164,14 +164,18 @@ Generated artifacts must not call `/api/*`. If a host repository later wires an
 artifact into an application API, that is normal application work outside the
 portable skill contract.
 
-## Helper Script Boundary
+## CLI Boundary
 
-`skills/open-design-slim/scripts/od-slim.mjs` is a portable compatibility
-artifact inside the Skill bundle. It intentionally remains `.mjs` so an agent can
-run it directly with Node in a copied skill folder without a TypeScript build
-step.
+Open Design Slim CLI is a separate publishable package. Its canonical command
+is `open-design-slim`, with `od-slim` as a short alias. The package
+intentionally does not register an `od` binary.
 
-Allowed helper behavior:
+The Skill bundle also includes `scripts/od-slim.mjs`, a self-contained generated
+helper built from the same source. It is allowed to use relative paths inside
+`skills/open-design-slim/`, but must not import or read implementation files
+outside the skill directory.
+
+Allowed CLI behavior:
 
 - copy bundled templates to a requested output directory,
 - scaffold the default design-system bundle,
@@ -179,9 +183,10 @@ Allowed helper behavior:
   completeness, source/provenance metadata, and basic state/a11y/viewport
   signals,
 - scan local output directories for forbidden runtime dependency strings,
-- write an `OPEN_DESIGN_SLIM_HANDOFF.md` template.
+- write an `OPEN_DESIGN_SLIM_HANDOFF.md` template,
+- show package/source-manifest metadata.
 
-Forbidden helper behavior:
+Forbidden CLI behavior:
 
 - call `od`,
 - start a daemon or web server,
@@ -193,14 +198,17 @@ Forbidden helper behavior:
 Supported commands:
 
 ```bash
-node skills/open-design-slim/scripts/od-slim.mjs --help
-node skills/open-design-slim/scripts/od-slim.mjs init prototype --kind static --output <dir>
-node skills/open-design-slim/scripts/od-slim.mjs init prototype --kind react --output <dir>
-node skills/open-design-slim/scripts/od-slim.mjs init prototype --kind deck --output <dir>
-node skills/open-design-slim/scripts/od-slim.mjs init design-system --output <dir> --name <name>
-node skills/open-design-slim/scripts/od-slim.mjs validate prototype --entry <file> [--dir <dir>]
-node skills/open-design-slim/scripts/od-slim.mjs validate design-system --dir <dir>
-node skills/open-design-slim/scripts/od-slim.mjs bundle handoff --dir <dir>
+open-design-slim --help
+open-design-slim init prototype --kind static --output <dir>
+open-design-slim init prototype --kind react --output <dir>
+open-design-slim init prototype --kind deck --output <dir>
+open-design-slim init design-system --output <dir> --name <name>
+open-design-slim validate prototype --entry <file> [--dir <dir>]
+open-design-slim validate design-system --dir <dir>
+open-design-slim bundle handoff --dir <dir>
+open-design-slim manifest show [--json]
+node scripts/od-slim.mjs --help
+node scripts/od-slim.mjs validate design-system --dir assets/design-systems/default
 ```
 
 Prototype validation scans the entry directory by default, or the explicit
@@ -215,8 +223,8 @@ Prototype validation scans the entry directory by default, or the explicit
 3. The agent reads `SKILL.md`, then only the side files relevant to the task.
 4. The agent writes the requested artifact directly, such as `index.html`,
    `Prototype.jsx`, or a repo-specific file path requested by the user.
-5. The agent optionally runs the bundled helper script, or uses the checklists
-   manually when execution is unavailable.
+5. The agent optionally runs `node scripts/od-slim.mjs` from the skill root, or
+   uses the checklists manually when Node is unavailable.
 6. The final handoff names generated files, design-system source, validation
    performed, and gaps requiring human visual review.
 
@@ -253,7 +261,8 @@ The current bundle includes:
   contracts,
 - state, visual, optional screenshot QA, responsive, and anti-pattern quality
   guardrails,
-- dependency-free local helper script.
+- self-contained `scripts/od-slim.mjs` helper plus optional external Open
+  Design Slim CLI support through the `open-design-slim` command.
 
 Bundle acceptance:
 

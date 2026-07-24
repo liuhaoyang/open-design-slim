@@ -52,10 +52,10 @@ content hierarchy and responsive behavior.
 
 ## 5. Validate Locally
 
-Run the helper when possible:
+Run the bundled helper from the skill directory when Node is available:
 
 ```bash
-node skills/open-design-slim/scripts/od-slim.mjs validate prototype --entry <path-to-entry>
+node scripts/od-slim.mjs validate prototype --entry <path-to-entry>
 ```
 
 Then perform manual checks from:

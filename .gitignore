@@ -26,7 +26,8 @@ node_modules/
 .yarn/install-state.gz
 
 # Build, coverage, and temporary output
-dist/
+dist/*
+!dist/cli.mjs
 build/
 coverage/
 .nyc_output/

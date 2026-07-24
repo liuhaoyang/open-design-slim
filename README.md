@@ -17,7 +17,10 @@ The canonical skill slug is `open-design-slim`, and the canonical entrypoint is
   and forbidden runtime dependencies.
 - Quality guardrails for state coverage, visual polish, responsive viewports,
   visual QA, and anti-patterns.
-- A dependency-free helper CLI at `skills/open-design-slim/scripts/od-slim.mjs`.
+- A separately publishable Open Design Slim CLI package with `open-design-slim`
+  and `od-slim` bins.
+- A self-contained skill helper at `skills/open-design-slim/scripts/od-slim.mjs`
+  that runs only against files inside the skill directory.
 
 The `open-design/` directory is a submodule used for upstream source context.
 Do not modify submodule contents when maintaining this standalone bundle.
@@ -41,6 +44,7 @@ git submodule update --init --recursive
 
 - [Getting Started](docs/getting-started.md)
 - [Open Design Slim Skill Bundle Spec](docs/open-design-slim-skill-bundle.md)
+- [Open Design Slim CLI Design](docs/open-design-slim-cli.md)
 - [Repository Layout](docs/repo-layout.md)
 - [Helper CLI Reference](docs/helper-cli.md)
 - [Validation And QA](docs/validation-qa.md)
@@ -49,8 +53,11 @@ git submodule update --init --recursive
 ## Quick Check
 
 ```bash
+node bin/open-design-slim.mjs --help
 node skills/open-design-slim/scripts/od-slim.mjs --help
-node skills/open-design-slim/scripts/od-slim.mjs validate design-system --dir skills/open-design-slim/assets/design-systems/default
+node bin/open-design-slim.mjs manifest show
+node bin/open-design-slim.mjs validate design-system --dir assets/design-systems/default
+pnpm run typecheck
 git status --short --untracked-files=all
 git submodule status
 ```
@@ -59,9 +66,11 @@ Generated artifacts should remain ordinary repository files and must not depend
 on the full Open Design runtime unless a separate, explicit runtime integration
 is performed outside this skill bundle.
 
-When maintaining this repository, edit the root docs and
-`skills/open-design-slim/` only. The `open-design/` directory is a submodule for
-upstream source context and is not part of the standalone payload.
+When maintaining this repository, edit the root docs, CLI package files
+(`bin/`, `src/`, `assets/`), generated skill helper
+`skills/open-design-slim/scripts/od-slim.mjs`, and `skills/open-design-slim/`
+only. The `open-design/` directory is a submodule for upstream source context
+and is not part of the standalone payload.
 
 ## License
 

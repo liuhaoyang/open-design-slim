@@ -1,0 +1,43 @@
+{
+  "name": "open-design-slim-cli",
+  "version": "0.1.0",
+  "description": "Daemonless Open Design Slim local-file CLI and skill bundle.",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.33.2",
+  "type": "module",
+  "bin": {
+    "open-design-slim": "bin/open-design-slim.mjs",
+    "od-slim": "bin/od-slim.mjs"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "assets/",
+    "docs/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build-cli.mjs",
+    "build:skill": "node scripts/build-cli.mjs --skill-only",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "check:assets": "node scripts/check-assets-sync.mjs",
+    "check:generated": "node scripts/check-generated.mjs",
+    "smoke:help": "node bin/open-design-slim.mjs --help && node bin/od-slim.mjs --help && node skills/open-design-slim/scripts/od-slim.mjs --help",
+    "smoke:design-system": "node bin/open-design-slim.mjs validate design-system --dir assets/design-systems/default",
+    "smoke:skill": "node skills/open-design-slim/scripts/od-slim.mjs validate design-system --dir skills/open-design-slim/assets/design-systems/default",
+    "prepublishOnly": "pnpm run check && pnpm pack --dry-run",
+    "check": "pnpm run typecheck && pnpm run build && pnpm run check:generated && pnpm run check:assets && pnpm run test && pnpm run smoke:help && pnpm run smoke:design-system && pnpm run smoke:skill"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10.33.2 <11"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.39",
+    "esbuild": "0.28.1",
+    "tsx": "4.22.3",
+    "typescript": "5.9.3"
+  }
+}

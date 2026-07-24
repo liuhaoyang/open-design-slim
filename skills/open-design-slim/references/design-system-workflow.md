@@ -29,10 +29,11 @@ A minimal design-system bundle should include:
 - Optional `preview/index.html` or `ui_kits/app/index.html` when the user needs
   a visual sample.
 
-The helper can scaffold this:
+The bundled helper can scaffold this from the skill directory when Node is
+available:
 
 ```bash
-node skills/open-design-slim/scripts/od-slim.mjs init design-system --output ./design-system --name "Product Name"
+node scripts/od-slim.mjs init design-system --output ./design-system --name "Product Name"
 ```
 
 ## 3. Design-System Requirements
@@ -49,7 +50,7 @@ node skills/open-design-slim/scripts/od-slim.mjs init design-system --output ./d
 ## 4. Validate
 
 ```bash
-node skills/open-design-slim/scripts/od-slim.mjs validate design-system --dir <bundle-dir>
+node scripts/od-slim.mjs validate design-system --dir <bundle-dir>
 ```
 
 Then check `contracts/design-system-output.md`,

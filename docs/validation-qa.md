@@ -10,8 +10,8 @@ Use the layers that are available in the target workspace:
 
 1. Contract review: read the relevant files under
    `skills/open-design-slim/contracts/`.
-2. Helper validation: run `scripts/od-slim.mjs validate ...` for prototypes or
-   design-system bundles.
+2. Skill helper validation: from `skills/open-design-slim/`, run
+   `node scripts/od-slim.mjs validate ...`.
 3. Manual quality review: use `skills/open-design-slim/quality/`.
 4. Optional browser or screenshot QA: follow
    `quality/visual-qa-recipe.md` when a browser is available.
@@ -35,7 +35,7 @@ For static HTML, React, and deck-style artifacts, confirm:
 Run:
 
 ```bash
-node skills/open-design-slim/scripts/od-slim.mjs validate prototype --entry <path-to-entry>
+node scripts/od-slim.mjs validate prototype --entry <path-to-entry>
 ```
 
 Use `--dir <artifact-root>` when supporting files live outside the entry file's
@@ -59,7 +59,7 @@ For design-system bundles, confirm:
 Run:
 
 ```bash
-node skills/open-design-slim/scripts/od-slim.mjs validate design-system --dir <bundle-dir>
+node scripts/od-slim.mjs validate design-system --dir <bundle-dir>
 ```
 
 ## Optional Visual QA

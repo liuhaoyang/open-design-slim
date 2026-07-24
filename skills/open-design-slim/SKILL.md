@@ -34,9 +34,10 @@ generation in a coding-agent workspace, but the full Open Design runtime is not
 available or intentionally out of scope.
 
 This is a portable generation kit. It writes ordinary files into the current
-workspace and can optionally run the local helper script. It does not manage
-projects, runs, artifact databases, previews, exports, plugins, providers, MCP,
-media, desktop windows, daemon data roots, or Open Design product commands.
+workspace and may use the bundled `scripts/od-slim.mjs` helper when Node is
+available. It does not manage projects, runs, artifact databases, previews,
+exports, plugins, providers, MCP, media, desktop windows, daemon data roots, or
+Open Design product commands.
 
 ## Trigger When
 
@@ -100,7 +101,8 @@ Use quality checks before final handoff:
 2. Inspect relevant repository UI, tokens, components, screenshots, or
    `DESIGN.md` if they exist. If no host design system exists, use
    `assets/design-systems/default/`.
-3. Copy the nearest template or run the helper script to scaffold it.
+3. Copy the nearest template or run `node scripts/od-slim.mjs` from this skill
+   directory to scaffold it.
 4. Replace template content with product-specific UI, real workflows, and the
    state matrix required by the contract.
 5. Validate that generated files have no daemon/runtime dependencies and that
@@ -108,23 +110,31 @@ Use quality checks before final handoff:
 6. Hand off with generated file paths, design-system source, checks performed,
    and any visual validation gaps.
 
-## Optional Helper CLI
+## Optional CLI
 
-The helper script is a portable compatibility artifact inside this skill. It is
-not an Open Design product command and uses only Node built-ins plus local file
-operations.
+Open Design Slim CLI is also available as a separate publishable package, but
+this skill carries a self-contained helper at `scripts/od-slim.mjs`. Run it from
+the `skills/open-design-slim/` directory so relative asset paths stay inside the
+skill. The helper is not an Open Design product command and uses local file
+operations only.
 
 ```bash
-node skills/open-design-slim/scripts/od-slim.mjs --help
-node skills/open-design-slim/scripts/od-slim.mjs init prototype --kind static --output ./prototype
-node skills/open-design-slim/scripts/od-slim.mjs init prototype --kind react --output ./prototype-react
-node skills/open-design-slim/scripts/od-slim.mjs init prototype --kind deck --output ./deck
-node skills/open-design-slim/scripts/od-slim.mjs init design-system --output ./design-system --name "Acme"
-node skills/open-design-slim/scripts/od-slim.mjs validate prototype --entry ./prototype/index.html
-node skills/open-design-slim/scripts/od-slim.mjs validate prototype --entry ./prototype/index.html --dir ./prototype
-node skills/open-design-slim/scripts/od-slim.mjs validate design-system --dir ./design-system
-node skills/open-design-slim/scripts/od-slim.mjs bundle handoff --dir ./prototype
+node scripts/od-slim.mjs --help
+node scripts/od-slim.mjs init prototype --kind static --output ./prototype
+node scripts/od-slim.mjs init prototype --kind react --output ./prototype-react
+node scripts/od-slim.mjs init prototype --kind deck --output ./deck
+node scripts/od-slim.mjs init design-system --output ./design-system --name "Acme"
+node scripts/od-slim.mjs validate prototype --entry ./prototype/index.html
+node scripts/od-slim.mjs validate prototype --entry ./prototype/index.html --dir ./prototype
+node scripts/od-slim.mjs validate design-system --dir ./design-system
+node scripts/od-slim.mjs bundle handoff --dir ./prototype
+node scripts/od-slim.mjs manifest show
 ```
+
+The standalone package binary `od-slim` remains an alias for `open-design-slim`.
+The package and this skill helper do not provide an `od` binary. If Node is
+unavailable, copy templates manually and use the contracts and quality
+checklists.
 
 Validation scans local text files for forbidden runtime dependencies. Prototype
 validation also checks basic entry shape, state/a11y/viewport signals, and a

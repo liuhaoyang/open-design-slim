@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "od-design-system-project/v1",
+  "id": "open-design-slim-default",
+  "name": "Open Design Slim Default",
+  "category": "Portable Operational UI",
+  "description": "Daemonless Open Design Slim baseline for dense static prototypes, React prototypes, deck artifacts, and local design-system handoffs.",
+  "source": {
+    "type": "bundled",
+    "origin": "open-design-slim skill bundle default"
+  },
+  "files": {
+    "design": "DESIGN.md",
+    "tokens": "tokens.css"
+  },
+  "usage": "USAGE.md",
+  "componentsManifest": "components.manifest.json",
+  "importMode": "normalized",
+  "craft": {
+    "applies": [],
+    "suggested": [
+      "accessibility-baseline",
+      "color",
+      "layout-density"
+    ],
+    "exemptions": [
+      "daemon-registration",
+      "runtime-preview"
+    ]
+  },
+  "preview": {
+    "dir": "preview",
+    "pages": [
+      {
+        "path": "preview/index.html",
+        "role": "overview",
+        "title": "Slim Default Preview"
+      },
+      {
+        "path": "ui_kits/app/index.html",
+        "role": "app-shell",
+        "title": "Operational App UI Kit"
+      }
+    ]
+  },
+  "sourceFiles": {
+    "evidence": "source/provenance.json"
+  }
+}

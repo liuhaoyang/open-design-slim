@@ -1,7 +1,8 @@
 # Forbidden Runtime Dependencies
 
 `open-design-slim` artifacts must stay portable. Generated files, templates,
-and helper-script output must not depend on the full Open Design runtime.
+and Open Design Slim CLI output must not depend on the full Open Design
+runtime.
 
 ## Forbidden in Generated Artifacts
 
@@ -21,12 +22,13 @@ and helper-script output must not depend on the full Open Design runtime.
 - Host-repository components and tokens when the artifact is meant to integrate
   into that host repo.
 - CDN-free static HTML and CSS.
-- Node built-in helper script operations that copy, validate, or write files in
-  the user-selected output directory.
+- The bundled `scripts/od-slim.mjs` helper or standalone Open Design Slim CLI
+  operations that copy, validate, or write files in the user-selected output
+  directory.
 
-## Helper Script Boundary
+## Open Design Slim CLI Boundary
 
-`scripts/od-slim.mjs` may:
+The bundled `scripts/od-slim.mjs` helper may:
 
 - copy bundled templates,
 - create local handoff files,
@@ -39,4 +41,5 @@ It must not:
 - call `od`,
 - call network APIs,
 - read or write daemon data roots,
+- import or read implementation files outside this skill directory,
 - mutate repository config outside the requested output directory.

@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Open Design Slim Deck</title>
+    <style>
+      :root {
+        --bg: #10140f;
+        --surface: #f6f7f2;
+        --ink: #18201b;
+        --muted: #667066;
+        --accent: #9cc7b8;
+        --line: #d9dfd0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      .deck {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+      }
+
+      .slide {
+        display: none;
+        width: min(1120px, 100%);
+        min-height: min(720px, calc(100vh - 112px));
+        background: var(--surface);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 14px;
+        padding: clamp(28px, 5vw, 64px);
+        box-shadow: 0 34px 70px rgba(0, 0, 0, 0.32);
+      }
+
+      .slide.is-active {
+        display: grid;
+        align-content: center;
+        gap: 24px;
+      }
+
+      .eyebrow {
+        color: #2f6f5e;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        letter-spacing: 0;
+        line-height: 1.04;
+      }
+
+      h1 {
+        max-width: 13ch;
+        font-size: clamp(3rem, 8vw, 6rem);
+      }
+
+      h2 {
+        max-width: 16ch;
+        font-size: clamp(2.2rem, 5vw, 4.25rem);
+      }
+
+      p {
+        margin: 0;
+        max-width: 66ch;
+        color: var(--muted);
+        font-size: clamp(1rem, 2vw, 1.2rem);
+        line-height: 1.6;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .tile {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 18px;
+        background: #fff;
+        min-height: 180px;
+      }
+
+      .tile strong {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 12px;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 120px minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+      }
+
+      .step span {
+        color: #2f6f5e;
+        font-weight: 800;
+      }
+
+      .controls {
+        position: fixed;
+        left: 50%;
+        bottom: 22px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transform: translateX(-50%);
+        color: #fff;
+      }
+
+      button {
+        min-width: 44px;
+        min-height: 38px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        cursor: pointer;
+        font: inherit;
+      }
+
+      button:disabled {
+        opacity: 0.42;
+        cursor: not-allowed;
+      }
+
+      button:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 760px) {
+        .deck {
+          padding: 14px;
+          align-items: start;
+        }
+
+        .slide {
+          min-height: calc(100vh - 96px);
+          padding: 28px;
+        }
+
+        .grid,
+        .step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="deck" aria-live="polite">
+      <section class="slide is-active">
+        <div class="eyebrow">Open Design Slim</div>
+        <h1>Portable prototype handoff</h1>
+        <p>
+          A compact deck scaffold for explaining a design decision, workflow, or
+          implementation plan without any daemon or web runtime dependency.
+        </p>
+      </section>
+
+      <section class="slide">
+        <div class="eyebrow">Why this matters</div>
+        <h2>Remote agents need explicit artifact contracts.</h2>
+        <div class="grid">
+          <article class="tile">
+            <strong>Inputs</strong>
+            <p>User brief, host repository context, and bundled design guidance.</p>
+          </article>
+          <article class="tile">
+            <strong>Outputs</strong>
+            <p>Ordinary files: HTML, React, DESIGN.md, tokens, and handoff notes.</p>
+          </article>
+          <article class="tile">
+            <strong>Boundary</strong>
+            <p>No runtime API, artifact database, provider proxy, or desktop preview.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="eyebrow">MVP flow</div>
+        <h2>Generate, validate, hand off.</h2>
+        <div class="timeline">
+          <div class="step"><span>01</span><p>Resolve context and select the right template.</p></div>
+          <div class="step"><span>02</span><p>Build the artifact with product-specific workflow states.</p></div>
+          <div class="step"><span>03</span><p>Run local checks and record gaps in the handoff.</p></div>
+        </div>
+      </section>
+    </main>
+
+    <div class="controls" aria-label="Slide controls">
+      <button type="button" id="prev" aria-label="Previous slide" disabled>&lt;</button>
+      <span id="count">1 / 3</span>
+      <button type="button" id="next" aria-label="Next slide">&gt;</button>
+    </div>
+
+    <script>
+      const slides = [...document.querySelectorAll(".slide")];
+      const prev = document.querySelector("#prev");
+      const next = document.querySelector("#next");
+      const count = document.querySelector("#count");
+      let index = 0;
+
+      function render() {
+        slides.forEach((slide, slideIndex) => {
+          slide.classList.toggle("is-active", slideIndex === index);
+        });
+        prev.disabled = index === 0;
+        next.disabled = index === slides.length - 1;
+        count.textContent = `${index + 1} / ${slides.length}`;
+      }
+
+      prev.addEventListener("click", () => {
+        index = Math.max(0, index - 1);
+        render();
+      });
+      next.addEventListener("click", () => {
+        index = Math.min(slides.length - 1, index + 1);
+        render();
+      });
+    </script>
+  </body>
+</html>
