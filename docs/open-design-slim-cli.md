@@ -151,7 +151,7 @@ src/manifest/open-design-slim.sources.json
 2. Check：`open-design-slim sync check` 读取 source manifest，确认每个 sourcePath 存在、上游 commit 匹配、目标 snapshot hash 匹配。
 3. Write：`open-design-slim sync write` 根据 manifest 刷新 generated/vendor snapshot，并更新 hash、生成时间和 provenance。写入必须显式确认，不能在普通 validate 中隐式发生。
 4. Review：snapshot 变更以普通 git diff review，不修改 `open-design/` submodule 内容。
-5. Publish：CLI 发布包包含 package、`bin/`、`src/`、CLI `assets/`、source manifest 和必要 docs；Skill bundle 独立分发时包含 `scripts/od-slim.mjs` 自包含 helper；两者都不包含 `open-design/`。
+5. Publish：CLI 发布包包含 package、`bin/`、`dist/`、CLI `assets/`、source manifest 和必要 docs；Skill bundle 独立分发时包含 `scripts/od-slim.mjs` 自包含 helper；两者都不包含 `open-design/`。
 
 短期可以先手工维护 manifest 与 snapshot；中期把 `sync write` 做成确定性生成；长期由上游 full Open Design exporter 输出同样的 slim folder shape。
 

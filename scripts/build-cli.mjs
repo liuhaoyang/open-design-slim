@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { build } from "esbuild";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import process from "node:process";
 
 const skillOnly = process.argv.includes("--skill-only");
@@ -20,11 +20,13 @@ async function stripEsbuildSourceComments(file) {
 
 async function buildPackageCli() {
   await mkdir("dist", { recursive: true });
+  await mkdir("dist/manifest", { recursive: true });
   await build({
     ...buildOptions,
     entryPoints: ["src/cli.ts"],
     outfile: "dist/cli.mjs"
   });
+  await copyFile("src/manifest/open-design-slim.sources.json", "dist/manifest/open-design-slim.sources.json");
   await stripEsbuildSourceComments("dist/cli.mjs");
 }
 

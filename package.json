@@ -12,6 +12,7 @@
   "files": [
     "bin/",
     "dist/",
+    "dist/manifest/",
     "assets/",
     "docs/",
     "README.md",
@@ -21,7 +22,9 @@
     "build": "node scripts/build-cli.mjs",
     "build:skill": "node scripts/build-cli.mjs --skill-only",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "vitest run --coverage",
+    "test:unit": "vitest run tests/unit",
+    "test:e2e": "vitest run tests/e2e",
     "check:assets": "node scripts/check-assets-sync.mjs",
     "check:generated": "node scripts/check-generated.mjs",
     "smoke:help": "node bin/open-design-slim.mjs --help && node bin/od-slim.mjs --help && node skills/open-design-slim/scripts/od-slim.mjs --help",
@@ -36,8 +39,10 @@
   },
   "devDependencies": {
     "@types/node": "20.19.39",
+    "@vitest/coverage-v8": "4.0.14",
     "esbuild": "0.28.1",
     "tsx": "4.22.3",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "4.0.14"
   }
 }

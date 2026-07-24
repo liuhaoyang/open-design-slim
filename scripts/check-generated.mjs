@@ -5,6 +5,7 @@ import process from "node:process";
 
 const generatedFiles = [
   "dist/cli.mjs",
+  "dist/manifest/open-design-slim.sources.json",
   "skills/open-design-slim/scripts/od-slim.mjs"
 ];
 

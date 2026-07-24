@@ -77,6 +77,16 @@ interface HandoffValidationOptions {
 
 type JsonObject = Record<string, unknown>;
 
+export class CliExitError extends Error {
+  readonly exitCode: number;
+
+  constructor(message: string, exitCode: number = 1) {
+    super(message);
+    this.name = "CliExitError";
+    this.exitCode = exitCode;
+  }
+}
+
 const runtimeDir = path.dirname(fileURLToPath(import.meta.url));
 const runtimeRoot = path.dirname(runtimeDir);
 const assetsRoot = path.join(runtimeRoot, "assets");
@@ -780,12 +790,7 @@ async function validateHandoff(file: string, failures: string[], { required }: H
 
 function reportValidation(label: string, failures: string[]): void {
   if (failures.length > 0) {
-    console.error(`${label} validation failed:`);
-    for (const failure of failures) {
-      console.error(`- ${failure}`);
-    }
-    process.exitCode = 1;
-    return;
+    throw new CliExitError(`${label} validation failed:\n${failures.map((failure) => `- ${failure}`).join("\n")}`);
   }
   writeLine(`${label} validation passed.`);
 }
