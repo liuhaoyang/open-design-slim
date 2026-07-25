@@ -32,6 +32,7 @@ dist/*
 !dist/manifest/open-design-slim.sources.json
 build/
 coverage/
+release/
 .nyc_output/
 .cache/
 .tmp/

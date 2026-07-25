@@ -59,7 +59,13 @@ For the publishable CLI package, include:
 - `dist/manifest/`
 - `assets/`
 
-For a host-neutral skill distribution, include:
+For a host-neutral skill distribution, run:
+
+```bash
+pnpm run release:skill
+```
+
+This writes `release/open-design-slim-skill.tar.gz`. The archive includes:
 
 - `skills/open-design-slim/SKILL.md`
 - `skills/open-design-slim/references/`
@@ -74,6 +80,14 @@ documentation. If only the skill folder is copied, it remains usable through
 `node scripts/od-slim.mjs`, manual template copying, and the checklists. The
 helper must remain self-contained and must not import or read files outside the
 skill directory.
+
+`check:skill-closure` must pass before publishing or copying the skill bundle.
+It copies only `skills/open-design-slim/` to a temporary directory and verifies
+the helper can run from that isolated copy.
+
+`release:skill` runs `check:skill-closure` before creating the tarball, so CI
+and release packaging both exercise the isolated skill bundle without making
+every local `pnpm run check` slower.
 
 ## TypeScript Runtime
 
