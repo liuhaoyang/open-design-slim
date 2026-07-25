@@ -35,12 +35,14 @@ Run:
 pnpm run build
 pnpm run typecheck
 pnpm run test
+pnpm run check:skill-closure
 pnpm run check
 ```
 
 The source checkout runs `node bin/*.mjs` against the generated `dist/cli.mjs`.
 Published usage should prefer `open-design-slim` or `od-slim`.
 Skill-bundle usage should prefer `node scripts/od-slim.mjs` from the skill root.
+Release packaging should use `pnpm run release:skill` after `pnpm run check`.
 
 ## Boundary
 

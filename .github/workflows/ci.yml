@@ -34,3 +34,12 @@ jobs:
 
       - name: Verify package contents
         run: pnpm pack --dry-run
+
+      - name: Package skill bundle
+        run: pnpm run release:skill
+
+      - name: Upload skill bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: open-design-slim-skill
+          path: release/open-design-slim-skill.tar.gz

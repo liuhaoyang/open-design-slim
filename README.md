@@ -53,13 +53,37 @@ git submodule update --init --recursive
 ## Quick Check
 
 ```bash
-node bin/open-design-slim.mjs --help
-node skills/open-design-slim/scripts/od-slim.mjs --help
-node bin/open-design-slim.mjs manifest show
-node bin/open-design-slim.mjs validate design-system --dir assets/design-systems/default
-pnpm run typecheck
+pnpm install
+pnpm run build
+pnpm run check
+pnpm run check:skill-closure
+pnpm run release:skill
 git status --short --untracked-files=all
 git submodule status
+```
+
+## Skill Bundle Release
+
+The primary portable artifact is the skill bundle under
+`skills/open-design-slim/`. The TypeScript source in `src/cli.ts` is translated
+into the self-contained skill helper at
+`skills/open-design-slim/scripts/od-slim.mjs` during release builds.
+
+Use:
+
+```bash
+pnpm run build
+pnpm run check:skill-closure
+pnpm run release:skill
+```
+
+`check:skill-closure` copies only `skills/open-design-slim/` to a temporary
+directory and verifies that `node scripts/od-slim.mjs` can run without the repo
+root, `src/`, `dist/`, `node_modules`, or top-level `assets/`. The release
+artifact is written to:
+
+```text
+release/open-design-slim-skill.tar.gz
 ```
 
 Generated artifacts should remain ordinary repository files and must not depend
